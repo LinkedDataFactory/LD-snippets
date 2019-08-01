@@ -1,6 +1,9 @@
 ## These subsequent SPARQL scripts change old URIs into new URIs with UUIDs as QN
 
-##Replace old subject QN with UUID. Be aware of the last character of the BaseURI..has or ##slash..this example is based on hash (#). Save changed subjects graph.
+##**Step 1**: 
+## Replace old subject QN with UUID. Be aware of the last character of the BaseURI..has or ##slash..this example is based on hash (#). Save changed subjects graph.
+## Run the following query and save the output to a new file, this is the subjects file, because here the subjects have a new URI
+
 prefix temp: <http://temp.org/> 
 
 CONSTRUCT { ?newuri ?p ?o ;
@@ -17,6 +20,7 @@ BIND (URI(replace(str(?inst),?qn, ?uid  )) as ?newuri)
 
 ## In subjects graph create "mapping-table" for mapping old-new URI. 
 ## Save this mapping graph and set the BaseURI to http://map.org/
+
 prefix map: <http://map.org/>
 prefix temp: <http://temp.org/>
 
@@ -29,6 +33,7 @@ WHERE {
 ## 1) importing (owl:import) "mapping-table" in subjects graph and running this query. 
 ## 2) Save results as objects graph 
 ## 3) After this, import the generated triples into changed subjects graph
+
 prefix map: <http://map.org/>
 prefix temp: <http://temp.org/>
 
@@ -45,6 +50,8 @@ WHERE  {GRAPH <http://map.org/> {
 ## Remove old object URIs with query below. To do this, keep owl:import "mapping-table"  
 ## After succes, remove owl:import statement
 ## Your subjects graph is now your new graph with UUIDs as QN in URIs 
+
+
 prefix map: <http://map.org/>
 prefix temp: <http://temp.org/>
 
