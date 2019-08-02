@@ -18,48 +18,55 @@ BIND (strafter(str(?inst),"#") as ?qn)
 BIND (URI(replace(str(?inst),?qn, ?uid  )) as ?newuri)
 }
 
-## In subjects graph create "mapping-table" for mapping old-new URI. 
-## Save this mapping graph and set the BaseURI to http://map.org/
+## Step 2: In the new subjects graph create a pointer for mapping old-new URI by running the query below. 
+## Save this mapping graph as a separate graph and set the BaseURI to http://map.org/
 
-prefix map: <http://map.org/>
+prefix koppel: <http://koppel.nl/>
 prefix temp: <http://temp.org/>
 
-CONSTRUCT {?s map:me ?olduri }
+CONSTRUCT {?s koppel:mij ?olduri }
 WHERE {
 ?s temp:olduri ?olduri
 }
 
-## replace old object URI by new UUID-URI by 
-## 1) importing (owl:import) "mapping-table" in subjects graph and running this query. 
-## 2) Save results as objects graph 
-## 3) After this, import the generated triples into changed subjects graph
+## Step 3: replace old object URI by new UUID-URI by 
+## 1) importing (owl:import) the mapping graph from step 2 in the subjects graph and running the query below. 
+## 2) Save results as a new graph with the name "objects graph" (separate save is for safety. If you are happy with the results you can directly do an insert). 
+## 3) After this, import the generated triples of the objects graph into the subjects graph
 
-prefix map: <http://map.org/>
+prefix koppel: <http://koppel.nl/>
 prefix temp: <http://temp.org/>
 
 CONSTRUCT {?s ?p ?s2}
+#SELECT distinct ?p
 WHERE {
     ?s ?p ?o .
-FILTER (?p NOT IN (temp:olduri , map:me ))
+FILTER (?p NOT IN (temp:olduri , koppel:mij ))
 {
 SELECT * 
-WHERE  {GRAPH <http://map.org/> {
+WHERE  {GRAPH <http://koppel.nl/> {
 ?s2 ?p2 ?o
-}}}}
+}
 
-## Remove old object URIs with query below. To do this, keep owl:import "mapping-table"  
-## After succes, remove owl:import statement
-## Your subjects graph is now your new graph with UUIDs as QN in URIs 
+}}}
 
 
-prefix map: <http://map.org/>
+## Step 4: There are now redundant temporary triples in the subject graph that must be removed. See query below.
+## End result: Your subjects graph is now your new graph with UUIDs as QN in URIs 
+
+
+prefix koppel: <http://koppel.nl/>
 prefix temp: <http://temp.org/>
 
 DELETE {?s ?p ?o}
+
 WHERE {
     ?s ?p ?o .
 {
 SELECT * 
-WHERE  {GRAPH <http://map.org/> {
+WHERE  {GRAPH <http://koppel.nl/> {
 ?s2 ?p2 ?o
-}}}}
+}
+
+}}}
+
